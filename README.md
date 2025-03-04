@@ -38,6 +38,9 @@ docker compose up --build --force-recreate
 
 ![Spring Boot Async Plot](./spring-boot-async-plot.png "Spring Boot Async Plot")
 
+<details>
+  <summary>Expand to View Results</summary>
+  
 ```shell
 ❯ ./report.sh
 =======================================
@@ -226,11 +229,14 @@ Status Codes  [code:count]                      200:500
 Error Set:
 
 ```
+</details>
 
 ### Virtual Threads
 
 ![Spring Boot Virtual Threads Plot](./spring-boot-virtual-threads-plot.png "Spring Boot Virtual Threads Plot")
 
+<details>
+  <summary>Expand to View Results</summary>
 
 ```shell
 ❯ ./report.sh
@@ -427,3 +433,4 @@ Status Codes  [code:count]                      200:500
 Error Set:
 
 ```
+</details>
