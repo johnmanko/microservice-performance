@@ -6,7 +6,7 @@ services:
             - "8080:8080"
         environment:
             "app.logging.enabled": "false"
-            "app.thread-executor": "virtual"
+            "app.thread-executor": "async"
         deploy:
             resources:
                 limits:

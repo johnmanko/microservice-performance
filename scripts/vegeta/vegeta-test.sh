@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# vegeta -cpus 2  attack -duration 60s  -name "Spring Boot"  -output ./results.bin  -rate 50 -targets ./targets.txt  -workers 2
+# vegeta -cpus 2  attack -duration 60s  -name "Spring Boot"  -output ./results.bin  -rate 50 -targets ./vegeta-targets.txt  -workers 2
 
 ENDPOINTS=(
   "non-async/clean"
@@ -29,7 +29,7 @@ echo "$CPUS\t$RATE\t$WORKERS\t$TIMEOUT\t$DURATION"
 
 for endpoint in "${ENDPOINTS[@]}"
 do
-    result="results_$(sed 's/\//_/g' <<< "$endpoint").bin"
+    result="vegeta_results_$(sed 's/\//_/g' <<< "$endpoint").bin"
     RESULTS+=("$result")
     echo "Testing '$endpoint' ..."
     echo "GET http://localhost:8080/$endpoint" | vegeta -cpus $CPUS attack \
@@ -41,4 +41,4 @@ do
                                                         -workers $WORKERS
 done
 
-vegeta plot "${RESULTS[@]}" > plot.html
+vegeta plot "${RESULTS[@]}" > vegeta_plot.html
