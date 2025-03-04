@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 
 @Service
 public class MessageService extends AbstractLoggable {
@@ -39,15 +38,7 @@ public class MessageService extends AbstractLoggable {
      */
     public CompletableFuture<String> getMessageWithCompletableFutureForkJoinPool() {
         logThreadType();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                // swallow error
-            }
-            return "Hello, World!";
-
-        });
+        return CompletableFuture.supplyAsync(this::getMessage);
     }
 
     /**
@@ -66,15 +57,7 @@ public class MessageService extends AbstractLoggable {
      */
     public CompletableFuture<String> getMessageWithCompletableFutureSpringExecutor() {
         logThreadType();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                // swallow error
-            }
-            return "Hello, World!";
-
-        }, taskExecutor);
+        return CompletableFuture.supplyAsync(this::getMessage, taskExecutor);
     }
 
     /**
@@ -89,12 +72,7 @@ public class MessageService extends AbstractLoggable {
     @Async
     public CompletableFuture<String> getMessageWithAsync() {
         logThreadType();
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            // swallow error
-        }
-        return CompletableFuture.completedFuture("Hello, World!");
+        return CompletableFuture.completedFuture(getMessage());
 
     }
 }
