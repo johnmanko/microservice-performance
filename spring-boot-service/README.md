@@ -1,12 +1,40 @@
-# Spring Boot notes.
+# Spring Boot Notes
 
-For async operations, the Spring Boot application makes use of the `@Async` annotation, WebFlux (reactive), `CompleteableFuture`, and virtual threads.  
+For async operations, the Spring Boot application makes use of the `@Async` annotation, WebFlux (reactive), `CompleteableFuture`, and virtual threads.
+
+## Run, Build, and Deploy   
+
+Run:
+```shell
+./mvnw spring-boot:run
+```
+
+Build Docker image:
+```shell
+./mvnw clean package
+docker compose up --build --force-recreate
+```
+
+Test service:
+```shell
+for run in {1..10}; do curl localhost:8080/reactive/cf-with-async;done
+```
+
+To change to virtual threads or enable logging, update `compose.yaml`'s `environment` to `virtual`:
+
+```yaml
+        environment:
+          "app.logging.enabled": "false"
+          "app.thread-executor": "async"
+```
 
 ## Endpoints
 
+### Descriptions
+
 #### `CompleteableFuture` Only
 
-* `/async/clean` - Calls a service that returns clean `String` value, and returns that string unwrapped.
+* `/non-async/clean` - Calls a service that returns clean `String` value, and returns that string unwrapped.
 * `/non-async/cf-get` - Calls a service that returns a `CompleteableFuture`, and manually executes `get` to return the resolved value.
 
 #### Async With `@Async` and `CompleteableFuture`
@@ -28,6 +56,12 @@ Change configuration `app.thread-executor` to `virtual`.
 * `/reactive/cf` - Calls a service that returns a `CompleteableFuture`, and manually wraps that in a `Mono.fromFuture`.
 * `/reactive/cf-with-async` - Calls a service that's annotated with `@Async`, and returns the `CompleteableFuture` wrapped in `Mono.fromFuture`.
 
+### Curl Examples
+
+```shell
+curl localhost:8080/reactive/cf-with-async;
+Hello, World!
+```
 
 ## @Async
 
@@ -36,11 +70,11 @@ The most important thing to remember regarding `@Async` is that it's simply and 
 According to the [@Async JavaDoc](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/scheduling/annotation/Async.html) (emphasis is mine):
 
 > Annotation that marks a method as a candidate for asynchronous execution.
-> 
+>
 > Can also be used at the type level, in which case all the type's methods are considered as asynchronous. Note, however, that `@Async` is not supported on methods declared within a `@Configuration` class.
-> 
+>
 > In terms of target method signatures, any parameter types are supported. However, **the return type is constrained to either `void` or `java. util. concurrent.Future`**. In the latter case, you may declare the more specific `java.util.concurrent.CompletableFuture` type which allows for richer interaction with the asynchronous task and for immediate composition with further processing steps.
-> 
+>
 > A `Future` handle returned from the proxy will be an actual asynchronous (`Completable`)`Future` that can be used to track the result of the asynchronous method execution. However, since the target method needs to implement the same signature, it will have to return a temporary `Future` handle that just passes a value after computation in the execution thread: typically through `java.util.concurrent.CompletableFuture.completedFuture(Object)`. The provided value will be exposed to the caller through the actual asynchronous `Future` handle at runtime.
 
 When you annotate a method with `@Async`, Spring offloads execution to a separate thread from the configured `TaskExecutor`. Without `@Async`, the method would still execute synchronously in the calling thread when it returns a `CompletableFuture`.
@@ -254,43 +288,43 @@ Another methodoloogy to handle concurrent requests is via Spring's reactive WebF
 According to ChatGPT (don't judge me! ;-):
 
 > **WebFlux (Reactive, Non-blocking)**
-> 
+>
 >   **Scalability**:
 >   WebFlux is built on a non-blocking, event-loop model (using runtimes like Netty). In theory, if every component of your request processing is non-blocking, WebFlux can handle an extremely high number of concurrent requests—even reaching into the millions—because it doesn’t dedicate an OS thread per request.
-> 
+>
 >   **Caveats**:
 >   This level of scalability depends on keeping all I/O and processing non-blocking. If you accidentally introduce blocking calls, the benefits are lost.
-> 
+>
 > --- 
 >
 > **Virtual Threads (Project Loom)**
-> 
+>
 >   **Scalability**:
 >   Virtual threads are designed to be much lighter than traditional OS threads. They allow you to write blocking code while still scaling to tens or even hundreds of thousands of concurrent tasks. The “tens of thousands” figure is a rough estimate; depending on your application’s nature, you might see even higher concurrency levels.
-> 
+>
 >   **Key Point**:
 >   Virtual threads bridge the gap between ease of use (blocking style) and high concurrency. However, they’re still subject to resource constraints like CPU and memory.
-> 
+>
 > --- 
 >
 > **Traditional Async with Thread Pools**
-> 
+>
 >   **Scalability**:
 >   Traditional asynchronous processing (for example, using Spring’s @Async with a fixed-size ThreadPoolTaskExecutor) is indeed limited by the number of threads in the pool. Since each thread is relatively heavyweight, scaling beyond a few hundred concurrent threads is typically impractical.
-> 
+>
 >   **Limitations**:
 >   If your processing relies on a blocking operation, you’re effectively limited by the number of threads available. Even if you return a CompletableFuture from an @Async method, if the underlying executor has only, say, 10 or 100 threads, you’re confined to that limit.
-> 
+>
 > --- 
 >
 > **Summary**
-> 
+>
 >   **WebFlux**:
 >   Optimized for high concurrency with non-blocking I/O, potentially handling millions of lightweight requests—provided every part of your stack is non-blocking.
-> 
+>
 >   **Virtual Threads**:
 >   Offer a balance by allowing you to write blocking code while still scaling to tens (or possibly hundreds) of thousands of concurrent tasks, thanks to their low overhead.
-> 
+>
 >   **Traditional Async (@Async with Thread Pools)**:
 >   Is generally limited by the size of the thread pool (i.e., the number of actual OS threads), making it less scalable compared to non-blocking approaches.
 
