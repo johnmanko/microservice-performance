@@ -6,7 +6,7 @@ This project contains projects with various performance techniques.
 
 ## Frameworks
 
-See the follow for more information on framework-specific notes:
+See the following for more information on framework-specific notes:
 
 * [Spring Boot](./spring-boot-service/README.md)
 
